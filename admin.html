@@ -20,7 +20,7 @@
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sr { position: absolute; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   body { margin: 0; background: var(--forest); color: var(--ivory); font-family: var(--sans); line-height: 1.5; padding: 28px 16px 56px; }
   .wrap { max-width: 980px; margin: 0 auto; }
   h1 { margin: 0; font-family: var(--serif); font-size: 32px; color: var(--cream); }
@@ -85,6 +85,7 @@
   .stat.main .l { color: var(--forest); }
 
   .scroll { overflow-x: auto; }
+  .scroll table { min-width: 100%; }
   table { width: 100%; border-collapse: collapse; font-size: 15px; }
   th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { font-size: 13px; color: var(--muted); font-weight: 600; white-space: nowrap; }
@@ -109,6 +110,32 @@
   dialog .row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
   dialog button { color: var(--forest); border-color: var(--forest); }
   dialog button.solid { background: var(--forest); color: var(--cream); }
+  @media (max-width: 600px) {
+    body { padding: 20px 12px 40px; }
+    h1 { font-size: clamp(26px, 8vw, 32px); }
+    .top { align-items: flex-start; flex-direction: column; }
+    .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+    .actions button { min-width: 0; padding: 9px 10px; }
+    .actions #signout { grid-column: 1 / -1; }
+    .panel { padding: 16px; margin-top: 14px; }
+    .evbar { grid-template-columns: minmax(0, 1fr); }
+    .evbar > button { width: 100%; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 12px; }
+    .stat .n { font-size: clamp(30px, 10vw, 40px); }
+    .stat .l { font-size: 12px; }
+    .toolbar, .addrow { flex-direction: column; align-items: stretch; }
+    .toolbar input, .toolbar select, .addrow input { width: 100%; min-width: 0; }
+    .addrow button { width: 100%; }
+    dialog { padding: 18px; }
+    dialog .row button { flex: 1 1 120px; }
+  }
+  @media (max-width: 360px) {
+    body { padding-right: 10px; padding-left: 10px; }
+    .panel { padding: 12px; }
+    .actions { gap: 6px; }
+    .actions button { font-size: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -184,7 +211,7 @@
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Friend</th><th>Allergies</th><th>Registered</th><th><span class="sr">Remove</span></th></tr></thead>
+            <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Friends</th><th>Allergies</th><th>Registered</th><th><span class="sr">Remove</span></th></tr></thead>
             <tbody id="rows"></tbody>
           </table>
         </div>
@@ -454,7 +481,7 @@
   }
 
   function renderStats() {
-    const friends = all.filter((r) => r.bringing_friend).length;
+    const friends = all.reduce((sum, r) => sum + friendCount(r), 0);
     $("s_reg").textContent = all.length;
     $("s_friends").textContent = friends;
     $("s_total").textContent = all.length + friends;
@@ -464,7 +491,7 @@
     const body = $("cityRows"); body.replaceChildren();
     cities.forEach((c) => {
       const list = all.filter((r) => r.city === c);
-      const f = list.filter((r) => r.bringing_friend).length;
+      const f = list.reduce((sum, r) => sum + friendCount(r), 0);
       const tr = document.createElement("tr");
       tr.append(cell(c), cell(list.length, "num"), cell(f, "num"), cell(list.length + f, "num"));
       body.append(tr);
@@ -480,6 +507,11 @@
     sel.value = cities.includes(cur) ? cur : "";
   }
 
+  function friendCount(registration) {
+    const count = Number(registration.friend_count);
+    return Number.isInteger(count) && count >= 0 ? count : (registration.bringing_friend ? 1 : 0);
+  }
+
   function renderRows() {
     const q = $("q").value.trim().toLowerCase();
     const city = $("cityFilter").value;
@@ -492,8 +524,9 @@
       const tr = document.createElement("tr");
       const friend = document.createElement("td");
       const tag = document.createElement("span");
-      tag.className = "tag" + (r.bringing_friend ? "" : " no");
-      tag.textContent = r.bringing_friend ? "+1 friend" : "Solo";
+      const friends = friendCount(r);
+      tag.className = "tag" + (friends ? "" : " no");
+      tag.textContent = friends ? "+" + friends + (friends === 1 ? " friend" : " friends") : "Solo";
       friend.append(tag);
 
       const act = document.createElement("td");
@@ -510,7 +543,8 @@
   }
 
   async function removeReg(r) {
-    const extra = r.bringing_friend ? " (and their friend)" : "";
+    const friends = friendCount(r);
+    const extra = friends ? " (and " + friends + (friends === 1 ? " friend)" : " friends)") : "";
     if (!confirm("Remove " + r.full_name + extra + " from " + current.name + "? This can\u2019t be undone.")) return;
     const { data, error } = await db.from("registrations").delete().eq("id", r.id).select();
     if (error || !data || !data.length) { alert("Couldn\u2019t remove that registration."); return; }
@@ -529,9 +563,9 @@
       if (/^[=+\-@]/.test(s)) s = "'" + s;
       return '"' + s.replace(/"/g, '""') + '"';
     };
-    const head = ["Full name", "Phone", "City", "Bringing friend", "Allergies", "Registered at"];
+    const head = ["Full name", "Phone", "City", "Friends coming", "Allergies", "Registered at"];
     const lines = [head.map(safe).join(",")].concat(
-      all.map((r) => [r.full_name, r.phone, r.city, r.bringing_friend ? "Yes" : "No", r.allergies, r.created_at].map(safe).join(","))
+      all.map((r) => [r.full_name, r.phone, r.city, friendCount(r), r.allergies, r.created_at].map(safe).join(","))
     );
     const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");

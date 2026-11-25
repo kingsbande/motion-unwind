@@ -7,7 +7,8 @@ create table public.registrations (
   phone text not null check (char_length(phone) between 7 and 20),
   city text not null check (char_length(city) between 2 and 50),
   allergies text check (char_length(allergies) <= 300),
-  bringing_friend boolean not null default false
+  bringing_friend boolean not null default false,
+  friend_count integer not null default 0 constraint registrations_friend_count_nonnegative check (friend_count >= 0)
 );
 
 -- One registration per phone number (stops accidental double sign-ups)
