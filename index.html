@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Merry Motion: Unwind Christmas Edition | Register</title>
+<link rel="icon" type="image/png" href="/motion-unwind-logo-transparent-512.png">
+<link rel="apple-touch-icon" href="/motion-unwind-logo-transparent-512.png">
+<meta property="og:image" content="/motion-unwind-logo-transparent-512.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/motion-unwind-logo-transparent-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -158,6 +164,8 @@
   .dress strong { color: var(--champagne); font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; display: block; margin-bottom: 2px; }
 
   main { position: relative; z-index: 1; }
+  [hidden] { display: none !important; }
+  body.loading main { visibility: hidden; }
   .h1-word { display: inline-block; white-space: nowrap; }
 
   /* Drifting gold specks behind everything */
@@ -172,14 +180,29 @@
   .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 
   /* Opening sequence: letters rise one by one, the rule draws, then the rest fades in together */
-  .motion .ch { display: inline-block; animation: letter .7s cubic-bezier(.2, .8, .2, 1) both; }
+  .motion.ready .ch { display: inline-block; animation: letter .7s cubic-bezier(.2, .8, .2, 1) both; }
   @keyframes letter { from { opacity: 0; transform: translateY(.45em) rotate(5deg); } to { opacity: 1; transform: none; } }
-  .motion .host { animation: fade .8s ease-out both; }
-  .motion .rule { transform-origin: center; animation: draw .7s cubic-bezier(.3, .7, .2, 1) .9s both; }
+  .motion.ready .host { animation: fade .8s ease-out both; }
+  .motion.ready .rule { transform-origin: center; animation: draw .7s cubic-bezier(.3, .7, .2, 1) .9s both; }
   @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  .motion .edition { animation: fade .9s ease-out 1s both; }
-  .motion .when, .motion .intro, .motion .card, .motion .dress { animation: fade 1s ease-out 1.4s both; }
+  .motion.ready .edition { animation: fade .9s ease-out 1s both; }
+  .motion.ready .when, .motion.ready .countdown, .motion.ready .intro, .motion.ready .card, .motion.ready .dress { animation: fade 1s ease-out 1.4s both; }
   @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .countdown { margin: 14px auto 0; }
+  .countdown-units { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(5px, 2vw, 10px); width: min(100%, 340px); margin: 0 auto; }
+  .countdown-box {
+    min-width: 0; padding: 8px 4px; border: 1px solid var(--gold); border-radius: 10px;
+    background: var(--cream); color: var(--forest); font-variant-numeric: tabular-nums;
+  }
+  .countdown-number { display: block; font-family: var(--serif); font-size: clamp(22px, 7vw, 32px); line-height: 1.15; }
+  .countdown-label { display: block; font-family: var(--sans); font-size: clamp(9px, 3vw, 12px); line-height: 1.3; }
+  .countdown-box.changed { animation: countdown-change .25s ease-out; }
+  @keyframes countdown-change { from { opacity: .5; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+  .countdown-today { margin: 0; color: var(--champagne); font-family: var(--serif); font-size: 19px; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 
   /* Responses to what the person does */
   .motion .choices label, .motion button.primary { transition: background-color .15s, color .15s, border-color .15s, transform .15s; }
@@ -192,19 +215,34 @@
   @keyframes pop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: none; } }
 </style>
 </head>
-<body>
+<body class="loading">
 <div class="specks" id="specks" aria-hidden="true"></div>
 <main>
   <header>
     <p class="host">BEACON MOTION</p>
-    <h1>Merry Motion</h1>
-    <p class="edition">Unwind Christmas Edition</p>
+    <h1 id="evTitle"></h1>
+    <p class="edition" id="evSubtitle"></p>
     <hr class="rule">
-    <p class="when">Saturday 19 December, 1:00 PM</p>
-    <p class="intro">An afternoon to celebrate each other: birthdays, achievements, and everything worth cheering for.</p>
+    <p class="when" id="evWhen"></p>
+    <div class="countdown" id="countdown" hidden>
+      <div class="countdown-units" id="countdownUnits" aria-hidden="true">
+        <div class="countdown-box"><span class="countdown-number" id="countDays">0</span><span class="countdown-label">Days</span></div>
+        <div class="countdown-box"><span class="countdown-number" id="countHours">00</span><span class="countdown-label">Hours</span></div>
+        <div class="countdown-box"><span class="countdown-number" id="countMinutes">00</span><span class="countdown-label">Minutes</span></div>
+        <div class="countdown-box"><span class="countdown-number" id="countSeconds">00</span><span class="countdown-label">Seconds</span></div>
+      </div>
+      <p class="countdown-today" id="countdownToday" hidden>It's today. See you there!</p>
+      <span class="sr-only" id="countdownTimer" role="timer" aria-live="off"></span>
+    </div>
+    <p class="intro" id="evIntro"></p>
   </header>
 
-  <section class="card" id="card">
+  <section class="card" id="notice" hidden>
+    <h2 id="noticeTitle"></h2>
+    <p class="sub" id="noticeText"></p>
+  </section>
+
+  <section class="card" id="card" hidden>
     <h2>Save your spot</h2>
     <p class="sub">It takes under a minute.</p>
 
@@ -250,50 +288,225 @@
     <div class="done" id="done" aria-live="polite">
       <div class="check" aria-hidden="true">&#10003;</div>
       <h2 id="doneTitle">You&rsquo;re in!</h2>
-      <p id="doneWhen">Saturday 19 December, 1:00 PM</p>
+      <p id="doneWhen"></p>
       <p class="detail" id="doneVenue"></p>
-      <p class="detail">Wear your favourite shades of red, green, white and gold.</p>
+      <p class="detail" id="doneDress"></p>
     </div>
   </section>
 
-  <div class="dress">
+  <div class="dress" id="dress" hidden>
     <div class="swatches" aria-hidden="true">
       <span style="background:#a4162b"></span>
       <span style="background:#0f6b47"></span>
       <span style="background:#f5eee0"></span>
       <span style="background:#c9a24a"></span>
     </div>
-    <strong>Mix, match and shine</strong>
-    Pick one shade or layer them all. No outfit? No problem, just come!
+    <span id="dressText"></span>
   </div>
 </main>
 
 <script type="module">
   import { db } from "./src/supabase.js";
 
-  // Cities shown on the form. Leave venue empty to hide the venue line.
-  const CITIES = [
-    { name: "Blantyre", venue: "Chinyonga" },
-    { name: "Lilongwe", venue: "Beacon House Church Office" },
-    { name: "Zomba", venue: "Botanical Gardens" }
-  ];
-
   const $ = (id) => document.getElementById(id);
   const form = $("form");
-
-  // Build city choices
-  CITIES.forEach((c, i) => {
-    const id = "city_" + i;
-    const input = document.createElement("input");
-    input.type = "radio"; input.name = "city"; input.id = id; input.value = c.name;
-    const label = document.createElement("label");
-    label.htmlFor = id; label.textContent = c.name;
-    $("cities").append(input, label);
-    input.addEventListener("change", () => {
-      $("venue").textContent = c.venue ? "Venue: " + c.venue : "";
-    });
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let event = null;
+  let CITIES = [];
+  let countdownInterval = null;
+  let countdownLastValues = null;
+  let countdownLastMinute = null;
+  const malawiDateFormat = new Intl.DateTimeFormat("en", {
+    year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Africa/Blantyre"
   });
 
+  /* ---------- Load the event ---------- */
+  // /?event=some-slug shows that event. With no slug, the next open upcoming event is shown.
+  async function loadEvent() {
+    if (!db) return { error: "config" };
+    const slug = new URLSearchParams(window.location.search).get("event");
+    let q = db.from("events").select("*");
+    if (slug) q = q.eq("slug", slug);
+    else q = q.eq("registration_open", true).gte("event_date", new Date().toISOString()).order("event_date", { ascending: true });
+    const { data, error } = await q.limit(1).maybeSingle();
+    if (error) return { error: "load" };
+    return { event: data };
+  }
+
+  function formatWhen(iso) {
+    const d = new Date(iso);
+    const day = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Africa/Blantyre" }).format(d);
+    const time = new Intl.DateTimeFormat("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Blantyre" }).format(d).toUpperCase();
+    return day.replace(",", "") + ", " + time;
+  }
+
+  function showNotice(title, text) {
+    $("notice").hidden = false;
+    $("noticeTitle").textContent = title;
+    $("noticeText").textContent = text;
+  }
+
+  function stopCountdown() {
+    if (countdownInterval !== null) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+  }
+
+  function sameMalawiDay(a, b) {
+    const dateKey = (date) => malawiDateFormat.formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => part.value)
+      .join("-");
+    return dateKey(a) === dateKey(b);
+  }
+
+  function updateCountdown(eventTime) {
+    const remaining = Math.max(0, eventTime - Date.now());
+    const todayText = $("countdownToday");
+    const units = $("countdownUnits");
+    const timerText = $("countdownTimer");
+
+    if (remaining === 0) {
+      units.hidden = true;
+      todayText.hidden = false;
+      timerText.textContent = "It's today. See you there!";
+      stopCountdown();
+      return;
+    }
+
+    const values = {
+      Days: Math.floor(remaining / 86400000),
+      Hours: Math.floor(remaining / 3600000) % 24,
+      Minutes: Math.floor(remaining / 60000) % 60,
+      Seconds: Math.floor(remaining / 1000) % 60
+    };
+    const showToday = remaining < 86400000 && sameMalawiDay(new Date(), new Date(eventTime));
+    units.hidden = showToday;
+    todayText.hidden = !showToday;
+
+    if (!calm && countdownLastValues) {
+      Object.keys(values).forEach((unit) => {
+        if (values[unit] !== countdownLastValues[unit]) {
+          const number = $("count" + unit);
+          const box = number.parentElement;
+          box.classList.remove("changed");
+          void box.offsetWidth;
+          box.classList.add("changed");
+        }
+      });
+    }
+    Object.keys(values).forEach((unit) => {
+      const number = $("count" + unit);
+      number.textContent = unit === "Days" ? String(values[unit]) : String(values[unit]).padStart(2, "0");
+    });
+    countdownLastValues = values;
+
+    const minute = Math.floor(remaining / 60000);
+    if (minute !== countdownLastMinute) {
+      const days = Math.floor(minute / 1440);
+      const hours = Math.floor(minute / 60) % 24;
+      const minutes = minute % 60;
+      const parts = [];
+      if (days) parts.push(days + (days === 1 ? " day" : " days"));
+      if (hours) parts.push(hours + (hours === 1 ? " hour" : " hours"));
+      parts.push(minutes + (minutes === 1 ? " minute" : " minutes"));
+      timerText.textContent = parts.length === 1
+        ? parts[0] + " until the event"
+        : parts.slice(0, -1).join(", ") + " and " + parts[parts.length - 1] + " until the event";
+      countdownLastMinute = minute;
+    }
+  }
+
+  function startCountdown(iso) {
+    stopCountdown();
+    countdownLastValues = null;
+    countdownLastMinute = null;
+    const eventTime = new Date(iso).getTime();
+    if (!Number.isFinite(eventTime) || eventTime <= Date.now()) return;
+    $("countdown").hidden = false;
+    updateCountdown(eventTime);
+    if (eventTime > Date.now()) countdownInterval = setInterval(() => updateCountdown(eventTime), 1000);
+  }
+
+  function renderCities() {
+    $("cities").replaceChildren();
+    CITIES.forEach((c, i) => {
+      const id = "city_" + i;
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = "city"; input.id = id; input.value = c.name;
+      const label = document.createElement("label");
+      label.htmlFor = id; label.textContent = c.name;
+      $("cities").append(input, label);
+      input.addEventListener("change", () => {
+        $("venue").textContent = c.venue ? "Venue: " + c.venue : "";
+      });
+    });
+  }
+
+  function animateTitle(text) {
+    const h1 = $("evTitle");
+    h1.textContent = text;
+    if (calm) return;
+    h1.setAttribute("aria-label", text);
+    h1.textContent = "";
+    let i = 0;
+    text.split(" ").forEach((word, w) => {
+      if (w) h1.append(" ");
+      const wrap = document.createElement("span");
+      wrap.className = "h1-word";
+      wrap.setAttribute("aria-hidden", "true");
+      [...word].forEach((chr) => {
+        const s = document.createElement("span");
+        s.className = "ch";
+        s.textContent = chr;
+        s.style.animationDelay = (0.25 + i * 0.06) + "s";
+        i++;
+        wrap.append(s);
+      });
+      h1.append(wrap);
+    });
+  }
+
+  async function init() {
+    stopCountdown();
+    $("countdown").hidden = true;
+    const res = await loadEvent();
+    event = res.event || null;
+
+    if (event) {
+      document.title = event.name + (event.subtitle ? ": " + event.subtitle : "") + " | Register";
+      animateTitle(event.name);
+      $("evSubtitle").textContent = event.subtitle || "";
+      $("evSubtitle").hidden = !event.subtitle;
+      $("evWhen").textContent = formatWhen(event.event_date);
+      $("evIntro").textContent = event.description || "";
+      $("evIntro").hidden = !event.description;
+      if (event.dress_note) { $("dressText").textContent = event.dress_note; $("dress").hidden = false; }
+
+      const eventPassed = new Date(event.event_date) < new Date();
+      if (!event.registration_open || eventPassed) {
+        showNotice("Registration is closed", "Thank you for your interest. Follow Beacon Motion for the next event.");
+      } else {
+        startCountdown(event.event_date);
+        CITIES = Array.isArray(event.venues) ? event.venues : [];
+        renderCities();
+        $("card").hidden = false;
+      }
+    } else {
+      animateTitle("Beacon Motion");
+      $("evSubtitle").hidden = true; $("evIntro").hidden = true; $("evWhen").hidden = true;
+      if (res.error === "config") showNotice("Almost there", "Supabase isn\u2019t connected yet. Add your project URL and anon key to the .env file and restart.");
+      else if (res.error === "load") showNotice("We couldn\u2019t load the event", "Check your connection and refresh the page.");
+      else showNotice("No event open right now", "There\u2019s no event taking registrations at the moment. Check back soon.");
+    }
+
+    document.body.classList.remove("loading");
+    document.documentElement.classList.add("ready");
+    if (!calm) startSpecks();
+  }
+
+  /* ---------- Form ---------- */
   function setError(field, msg) { $("err_" + field).textContent = msg || ""; }
   function showFormError(msg) {
     const el = $("formError");
@@ -321,18 +534,15 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     showFormError("");
+    if (!db || !event) return;
     const v = validate();
     if (!v) return;
-
-    if (!db) {
-      showFormError("Supabase isn\u2019t connected yet. Add your project URL and anon key to the .env file and restart the dev server.");
-      return;
-    }
 
     const btn = $("submit");
     btn.disabled = true; btn.textContent = "Saving\u2026";
 
     const { error } = await db.from("registrations").insert({
+      event_id: event.id,
       full_name: v.name,
       phone: v.phone,
       city: v.city,
@@ -343,7 +553,9 @@
     if (error) {
       btn.disabled = false; btn.textContent = "Save my spot";
       if (error.code === "23505") {
-        showFormError("This phone number is already registered. If you need to change something, contact the organisers.");
+        showFormError("This phone number is already registered for this event. If you need to change something, contact the organisers.");
+      } else if (error.code === "42501") {
+        showFormError("Registration for this event has closed.");
       } else {
         showFormError("We couldn\u2019t save your registration. Check your connection and try again.");
       }
@@ -352,40 +564,18 @@
 
     const first = v.name.split(" ")[0];
     $("doneTitle").textContent = "You\u2019re in, " + first + "!";
+    $("doneWhen").textContent = formatWhen(event.event_date);
     const city = CITIES.find((c) => c.name === v.city);
     $("doneVenue").textContent = city && city.venue ? v.city + ": " + city.venue : v.city;
+    $("doneDress").textContent = event.dress_note || "";
+    $("doneDress").hidden = !event.dress_note;
     $("card").classList.add("is-done");
     burst();
     $("card").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   /* ---------- Motion (skipped when the device asks for reduced motion) ---------- */
-  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  if (!calm) {
-    // Title: split into letters so they can rise one after another
-    const h1 = document.querySelector("h1");
-    const text = h1.textContent;
-    h1.setAttribute("aria-label", text);
-    h1.textContent = "";
-    let i = 0;
-    text.split(" ").forEach((word, w) => {
-      if (w) h1.append(" ");
-      const wrap = document.createElement("span");
-      wrap.className = "h1-word";
-      wrap.setAttribute("aria-hidden", "true");
-      [...word].forEach((chr) => {
-        const s = document.createElement("span");
-        s.className = "ch";
-        s.textContent = chr;
-        s.style.animationDelay = (0.25 + i * 0.06) + "s";
-        i++;
-        wrap.append(s);
-      });
-      h1.append(wrap);
-    });
-
-    // Slow drifting gold specks
+  function startSpecks() {
     const tones = ["#c9a24a", "#d9bd7a", "#f5eee0", "#d9bd7a"];
     for (let n = 0; n < 26; n++) {
       const s = document.createElement("span");
@@ -441,6 +631,8 @@
       if (t < DURATION) requestAnimationFrame(frame); else cv.remove();
     })(start);
   }
+
+  init();
 </script>
 </body>
 </html>

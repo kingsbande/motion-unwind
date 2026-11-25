@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Merry Motion | Admin</title>
+<title>Beacon Motion | Admin</title>
+<link rel="icon" type="image/png" href="/motion-unwind-logo-transparent-512.png">
+<link rel="apple-touch-icon" href="/motion-unwind-logo-transparent-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,6 +19,8 @@
     --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   body { margin: 0; background: var(--forest); color: var(--ivory); font-family: var(--sans); line-height: 1.5; padding: 28px 16px 56px; }
   .wrap { max-width: 980px; margin: 0 auto; }
   h1 { margin: 0; font-family: var(--serif); font-size: 32px; color: var(--cream); }
@@ -24,7 +28,7 @@
   .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  button, .btn {
+  button {
     font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; min-height: 44px;
     padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--gold);
     background: transparent; color: var(--champagne);
@@ -32,22 +36,50 @@
   button:hover { background: rgba(201,162,74,.15); }
   button.solid { background: var(--gold); color: var(--forest); }
   button.solid:hover { background: var(--champagne); }
-  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--champagne); outline-offset: 2px; }
+  button.danger { color: var(--cranberry); border-color: #d9a3a9; min-height: 36px; padding: 6px 12px; font-size: 14px; }
+  button.danger:hover { background: #fbe9ea; }
+  button:disabled { opacity: .6; cursor: wait; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--champagne); outline-offset: 2px; }
 
-  .panel { background: var(--cream); color: var(--ink); border: 1px solid var(--gold); border-radius: 16px; padding: 22px; }
+  .panel { background: var(--cream); color: var(--ink); border: 1px solid var(--gold); border-radius: 16px; padding: 22px; margin-top: 18px; }
   .panel h2 { margin: 0 0 14px; font-family: var(--serif); font-size: 22px; color: var(--forest); }
+  .panel button { color: var(--forest); border-color: var(--forest); }
+  .panel button:hover { background: rgba(18,45,33,.08); }
+  .panel button.solid { background: var(--forest); color: var(--cream); }
+  .panel button.solid:hover { background: var(--pine); }
+  .panel button.danger { color: var(--cranberry); border-color: #d9a3a9; }
+  .sub { margin: -8px 0 14px; color: var(--muted); font-size: 14px; }
+
+  label { display: block; font-weight: 600; font-size: 15px; margin: 0 0 6px; color: var(--forest); }
+  .hint { font-weight: 400; color: var(--muted); }
+  input[type=text], input[type=email], input[type=password], input[type=datetime-local], input[type=search], select, textarea {
+    width: 100%; font: inherit; font-size: 16px; padding: 11px 13px; margin-bottom: 16px;
+    border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+  }
+  textarea { resize: vertical; min-height: 84px; }
+
+  .msg { font-size: 15px; margin: 0 0 14px; color: var(--cranberry); }
+  .msg.ok { color: var(--emerald); }
 
   /* login */
-  #login { max-width: 400px; margin: 60px auto 0; }
-  #login label { display: block; font-weight: 600; font-size: 15px; margin: 0 0 6px; color: var(--forest); }
-  #login input { width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; margin-bottom: 16px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
-  #login button { width: 100%; }
-  .msg { color: var(--cranberry); font-size: 15px; margin: 0 0 14px; min-height: 0; }
+  #login { max-width: 420px; margin: 60px auto 0; }
+  #login button.solid { width: 100%; }
+  .linkbtn { background: none; border: 0; padding: 0; min-height: 0; color: var(--emerald); text-decoration: underline; font-weight: 500; }
+  .linkbtn:hover { background: none; }
+  .swap { margin: 16px 0 0; text-align: center; font-size: 15px; color: var(--muted); }
+
+  /* event bar */
+  .evbar { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+  .evbar select { margin-bottom: 0; }
+  .evmeta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+  .pill { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--emerald); color: var(--cream); }
+  .pill.closed { background: #e8e0cc; color: var(--muted); }
+  .link { font-size: 14px; color: var(--muted); word-break: break-all; }
 
   /* headcount */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 18px; }
   .stat { background: var(--cream); color: var(--ink); border: 1px solid var(--gold); border-radius: 14px; padding: 16px 18px; }
-  .stat.main { background: var(--gold); border-color: var(--gold); }
+  .stat.main { background: var(--gold); }
   .stat .n { font-family: var(--serif); font-weight: 700; font-size: 44px; line-height: 1; color: var(--forest); }
   .stat .l { margin-top: 6px; font-size: 14px; color: var(--muted); }
   .stat.main .l { color: var(--forest); }
@@ -58,38 +90,48 @@
   th { font-size: 13px; color: var(--muted); font-weight: 600; white-space: nowrap; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   tfoot td { font-weight: 600; border-bottom: 0; color: var(--forest); }
-  .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: var(--forest); color: var(--cream); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: var(--forest); color: var(--cream); white-space: nowrap; }
   .tag.no { background: #e8e0cc; color: var(--muted); }
   .allergy { color: var(--cranberry); font-weight: 500; }
   .empty { color: var(--muted); padding: 18px 0 4px; }
 
-  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .toolbar input, .toolbar select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); min-height: 44px; }
-  .toolbar input { flex: 1; min-width: 180px; }
-  .panel + .panel, .stats + .panel { margin-top: 18px; }
-  .panel button { color: var(--forest); border-color: var(--forest); }
-  .panel button:hover { background: rgba(18,45,33,.08); }
-  [hidden] { display: none !important; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .toolbar input, .toolbar select { margin-bottom: 0; min-height: 44px; }
+  .toolbar input { flex: 1; min-width: 180px; width: auto; }
+  .toolbar select { width: auto; }
+
+  .addrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .addrow input { flex: 1; min-width: 200px; margin-bottom: 0; width: auto; }
+
+  dialog { border: 1px solid var(--gold); border-radius: 16px; background: var(--cream); color: var(--ink); padding: 24px; width: min(560px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; }
+  dialog::backdrop { background: rgba(10, 25, 18, .7); }
+  dialog h2 { margin: 0 0 16px; font-family: var(--serif); color: var(--forest); }
+  dialog .row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  dialog button { color: var(--forest); border-color: var(--forest); }
+  dialog button.solid { background: var(--forest); color: var(--cream); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
+  <!-- Sign in / create account -->
   <section id="login" class="panel" hidden>
-    <h2>Admin sign in</h2>
+    <h2 id="loginTitle">Admin sign in</h2>
     <p class="msg" id="loginMsg" role="alert"></p>
     <form id="loginForm">
       <label for="email">Email</label>
       <input type="email" id="email" autocomplete="username" required>
       <label for="password">Password</label>
-      <input type="password" id="password" autocomplete="current-password" required>
-      <button type="submit" class="solid" style="color:var(--forest);border-color:var(--gold)">Sign in</button>
+      <input type="password" id="password" autocomplete="current-password" minlength="8" required>
+      <button type="submit" class="solid" id="loginBtn">Sign in</button>
     </form>
+    <p class="swap" id="swap">Invited as an admin? <button type="button" class="linkbtn" id="toSignup">Create your account</button></p>
   </section>
 
+  <!-- Dashboard -->
   <section id="dash" hidden>
     <div class="top">
-      <h1>Merry Motion <em>Registrations</em></h1>
+      <h1>Beacon Motion <em>Admin</em></h1>
       <div class="actions">
         <button id="refresh">Refresh</button>
         <button id="export">Download CSV</button>
@@ -97,48 +139,119 @@
       </div>
     </div>
 
-    <div class="stats">
-      <div class="stat main"><div class="n" id="s_total">0</div><div class="l">People attending (including friends)</div></div>
-      <div class="stat"><div class="n" id="s_reg">0</div><div class="l">Registered</div></div>
-      <div class="stat"><div class="n" id="s_friends">0</div><div class="l">Friends coming</div></div>
-      <div class="stat"><div class="n" id="s_allergy">0</div><div class="l">With allergies</div></div>
+    <div class="panel" style="margin-top:0">
+      <h2>Event</h2>
+      <div class="evbar">
+        <div>
+          <label for="eventSelect">Showing registrations for</label>
+          <select id="eventSelect"></select>
+        </div>
+        <button id="newEvent" class="solid">New event</button>
+      </div>
+      <div class="evmeta" id="evmeta" hidden>
+        <span class="pill" id="statusPill"></span>
+        <button id="toggleOpen"></button>
+        <button id="copyLink">Copy sign-up link</button>
+      </div>
+      <p class="link" id="linkText"></p>
+      <p class="empty" id="noEvents" hidden>No events yet. Create your first one.</p>
+    </div>
+
+    <div id="eventData" hidden>
+      <div class="stats">
+        <div class="stat main"><div class="n" id="s_total">0</div><div class="l">People attending (including friends)</div></div>
+        <div class="stat"><div class="n" id="s_reg">0</div><div class="l">Registered</div></div>
+        <div class="stat"><div class="n" id="s_friends">0</div><div class="l">Friends coming</div></div>
+        <div class="stat"><div class="n" id="s_allergy">0</div><div class="l">With allergies</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Headcount by city</h2>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>City</th><th class="num">Registered</th><th class="num">Friends</th><th class="num">Total</th></tr></thead>
+            <tbody id="cityRows"></tbody>
+            <tfoot id="cityFoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Everyone registered</h2>
+        <div class="toolbar">
+          <input type="search" id="q" placeholder="Search name or phone" aria-label="Search name or phone">
+          <select id="cityFilter" aria-label="Filter by city"><option value="">All cities</option></select>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Friend</th><th>Allergies</th><th>Registered</th><th><span class="sr">Remove</span></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="empty" hidden>No registrations match.</p>
+      </div>
     </div>
 
     <div class="panel">
-      <h2>Headcount by city</h2>
+      <h2>Admins</h2>
+      <p class="sub">To add an admin, enter their email below. They then open this page, choose &ldquo;Create your account&rdquo; with that same email, and confirm it from the email Supabase sends.</p>
+      <p class="msg" id="adminMsg" role="alert"></p>
       <div class="scroll">
-        <table>
-          <thead><tr><th>City</th><th class="num">Registered</th><th class="num">Friends</th><th class="num">Total</th></tr></thead>
-          <tbody id="cityRows"></tbody>
-          <tfoot id="cityFoot"></tfoot>
-        </table>
+        <table><tbody id="adminRows"></tbody></table>
       </div>
-    </div>
-
-    <div class="panel">
-      <h2>Everyone registered</h2>
-      <div class="toolbar">
-        <input type="search" id="q" placeholder="Search name or phone" aria-label="Search name or phone">
-        <select id="cityFilter" aria-label="Filter by city"><option value="">All cities</option></select>
-      </div>
-      <div class="scroll">
-        <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Friend</th><th>Allergies</th><th>Registered</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-      <p class="empty" id="empty" hidden>No registrations match.</p>
+      <form class="addrow" id="adminForm">
+        <input type="email" id="newAdmin" placeholder="name@example.com" aria-label="New admin email" required>
+        <button type="submit" class="solid">Add admin</button>
+      </form>
     </div>
   </section>
 </div>
+
+<!-- New event -->
+<dialog id="evDialog">
+  <h2>New event</h2>
+  <p class="msg" id="evMsg" role="alert"></p>
+  <form id="evForm">
+    <label for="ev_name">Event name</label>
+    <input type="text" id="ev_name" maxlength="100" placeholder="Merry Motion" required>
+
+    <label for="ev_sub">Subtitle <span class="hint">(optional)</span></label>
+    <input type="text" id="ev_sub" maxlength="100" placeholder="Unwind Christmas Edition">
+
+    <label for="ev_date">Date and time <span class="hint">(Malawi time)</span></label>
+    <input type="datetime-local" id="ev_date" required>
+
+    <label for="ev_venues">Cities and venues <span class="hint">(one per line, like &ldquo;Blantyre | Chinyonga&rdquo;)</span></label>
+    <textarea id="ev_venues" placeholder="Blantyre | Chinyonga&#10;Lilongwe | Beacon House Church Office&#10;Zomba | Botanical Gardens" required></textarea>
+
+    <label for="ev_desc">Short description <span class="hint">(optional)</span></label>
+    <textarea id="ev_desc" maxlength="400"></textarea>
+
+    <label for="ev_dress">Dress code or note <span class="hint">(optional)</span></label>
+    <textarea id="ev_dress" maxlength="400"></textarea>
+
+    <label for="ev_slug">Link name <span class="hint">(optional, made from the name if empty)</span></label>
+    <input type="text" id="ev_slug" maxlength="60" placeholder="merry-motion-march-2027">
+
+    <div class="row">
+      <button type="button" id="evCancel">Cancel</button>
+      <button type="submit" class="solid" id="evSave">Create event</button>
+    </div>
+  </form>
+</dialog>
 
 <script type="module">
   import { db } from "./src/supabase.js";
 
   const $ = (id) => document.getElementById(id);
+  let events = [];
+  let current = null;
   let all = [];
+  let me = "";
+  let mode = "in";
 
-  const fmtDate = (iso) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const fmtDate = (iso) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Blantyre" });
+  const fmtEvent = (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Blantyre" });
 
   function cell(text, cls) {
     const td = document.createElement("td");
@@ -146,15 +259,208 @@
     td.textContent = text;
     return td;
   }
+  function say(el, text, ok) { el.textContent = text || ""; el.classList.toggle("ok", !!ok); }
+  const hasAllergy = (r) => {
+    const a = (r.allergies || "").trim().toLowerCase();
+    return a && !["none", "no", "nil", "n/a", "na", "-"].includes(a);
+  };
+  const eventCities = () => (current && Array.isArray(current.venues) ? current.venues.map((v) => v.name) : []);
+
+  /* ---------- Sign in / sign up ---------- */
+  function setMode(m) {
+    mode = m;
+    $("loginTitle").textContent = m === "in" ? "Admin sign in" : "Create your admin account";
+    $("loginBtn").textContent = m === "in" ? "Sign in" : "Create account";
+    $("password").autocomplete = m === "in" ? "current-password" : "new-password";
+    $("swap").replaceChildren();
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "linkbtn";
+    if (m === "in") {
+      $("swap").append("Invited as an admin? ");
+      b.textContent = "Create your account";
+    } else {
+      $("swap").append("Already have an account? ");
+      b.textContent = "Sign in";
+    }
+    b.addEventListener("click", () => { say($("loginMsg"), ""); setMode(m === "in" ? "up" : "in"); });
+    $("swap").append(b);
+  }
+  $("toSignup").addEventListener("click", () => setMode("up"));
+
+  function showLogin(message, ok) {
+    $("login").hidden = false; $("dash").hidden = true;
+    say($("loginMsg"), message, ok);
+  }
+
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    say($("loginMsg"), "");
+    if (!db) { say($("loginMsg"), "Supabase isn\u2019t connected. Add your URL and anon key to .env and restart."); return; }
+    const email = $("email").value.trim().toLowerCase();
+    const password = $("password").value;
+    $("loginBtn").disabled = true;
+
+    if (mode === "up") {
+      const { error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: window.location.href } });
+      $("loginBtn").disabled = false;
+      if (error) { say($("loginMsg"), error.message); return; }
+      $("password").value = "";
+      setMode("in");
+      say($("loginMsg"), "Account created. Open the confirmation email, then come back and sign in. You\u2019ll only get access if an existing admin added this email.", true);
+      return;
+    }
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    $("loginBtn").disabled = false;
+    if (error) { say($("loginMsg"), "Email or password is incorrect, or the email isn\u2019t confirmed yet."); return; }
+    $("password").value = "";
+    await enter(data.session);
+  });
+
+  async function enter(session) {
+    me = (session.user.email || "").toLowerCase();
+    const { data: isAdmin } = await db.rpc("is_admin");
+    if (!isAdmin) {
+      await db.auth.signOut();
+      showLogin(me + " isn\u2019t an admin yet. Ask an existing admin to add this email, then sign in again.");
+      return;
+    }
+    $("login").hidden = true; $("dash").hidden = false;
+    await loadEvents();
+    await loadAdmins();
+  }
+
+  $("signout").addEventListener("click", async () => {
+    await db.auth.signOut();
+    all = []; events = []; current = null;
+    showLogin("");
+  });
+
+  /* ---------- Events ---------- */
+  async function loadEvents(selectId) {
+    const { data, error } = await db.from("events").select("*").order("event_date", { ascending: false });
+    if (error) { alert("Couldn\u2019t load events: " + error.message); return; }
+    events = data;
+
+    const sel = $("eventSelect");
+    sel.replaceChildren();
+    events.forEach((ev) => sel.append(new Option(ev.name + (ev.subtitle ? ": " + ev.subtitle : "") + " (" + fmtEvent(ev.event_date) + ")", ev.id)));
+
+    $("noEvents").hidden = events.length > 0;
+    $("eventData").hidden = events.length === 0;
+    $("evmeta").hidden = events.length === 0;
+    $("export").disabled = events.length === 0;
+
+    if (!events.length) { current = null; $("linkText").textContent = ""; return; }
+
+    let pick = events.find((e) => e.id === selectId);
+    if (!pick) {
+      const now = Date.now();
+      const upcoming = events.filter((e) => new Date(e.event_date) >= now).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
+      pick = upcoming[0] || events[0];
+    }
+    sel.value = pick.id;
+    await selectEvent(pick.id);
+  }
+
+  async function selectEvent(id) {
+    current = events.find((e) => e.id === id) || null;
+    renderEventBar();
+    $("q").value = ""; $("cityFilter").value = "";
+    await loadRegs();
+  }
+
+  function renderEventBar() {
+    if (!current) return;
+    const open = current.registration_open;
+    $("statusPill").textContent = open ? "Registration open" : "Registration closed";
+    $("statusPill").classList.toggle("closed", !open);
+    $("toggleOpen").textContent = open ? "Close registration" : "Reopen registration";
+    $("linkText").textContent = window.location.origin + "/?event=" + current.slug;
+  }
+
+  $("eventSelect").addEventListener("change", (e) => selectEvent(e.target.value));
+
+  $("toggleOpen").addEventListener("click", async () => {
+    const next = !current.registration_open;
+    if (!next && !confirm("Close registration for " + current.name + "? People won\u2019t be able to sign up until you reopen it.")) return;
+    const { data, error } = await db.from("events").update({ registration_open: next }).eq("id", current.id).select();
+    if (error || !data || !data.length) { alert("Couldn\u2019t update the event."); return; }
+    current = data[0];
+    events = events.map((e) => (e.id === current.id ? current : e));
+    renderEventBar();
+  });
+
+  $("copyLink").addEventListener("click", async () => {
+    const btn = $("copyLink");
+    try {
+      await navigator.clipboard.writeText($("linkText").textContent);
+      btn.textContent = "Copied";
+    } catch { btn.textContent = "Select the link below to copy"; }
+    setTimeout(() => { btn.textContent = "Copy sign-up link"; }, 1800);
+  });
+
+  /* New event dialog */
+  const slugify = (t) => t.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+  $("newEvent").addEventListener("click", () => { say($("evMsg"), ""); $("evDialog").showModal(); });
+  $("evCancel").addEventListener("click", () => $("evDialog").close());
+
+  $("evForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    say($("evMsg"), "");
+
+    const venues = $("ev_venues").value.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+      const [name, ...rest] = l.split("|");
+      return { name: name.trim(), venue: rest.join("|").trim() };
+    }).filter((v) => v.name);
+    if (!venues.length) { say($("evMsg"), "Add at least one city."); return; }
+
+    const date = new Date($("ev_date").value + ":00+02:00");
+    if (isNaN(date)) { say($("evMsg"), "Choose a date and time."); return; }
+
+    const name = $("ev_name").value.trim();
+    const sub = $("ev_sub").value.trim();
+    let slug = slugify($("ev_slug").value) || slugify([name, sub, date.getFullYear()].join(" ")).slice(0, 60).replace(/-+$/, "");
+    if (slug.length < 3) { say($("evMsg"), "Add a link name using letters or numbers."); return; }
+
+    $("evSave").disabled = true;
+    const { data, error } = await db.from("events").insert({
+      slug, name,
+      subtitle: sub || null,
+      event_date: date.toISOString(),
+      venues,
+      description: $("ev_desc").value.trim() || null,
+      dress_note: $("ev_dress").value.trim() || null
+    }).select().single();
+    $("evSave").disabled = false;
+
+    if (error) {
+      say($("evMsg"), error.code === "23505" ? "That link name is already used. Type a different one in the Link name box." : "Couldn\u2019t create the event: " + error.message);
+      return;
+    }
+    $("evForm").reset();
+    $("evDialog").close();
+    await loadEvents(data.id);
+  });
+
+  /* ---------- Registrations ---------- */
+  async function loadRegs() {
+    if (!current) { all = []; renderStats(); renderRows(); return; }
+    const { data, error } = await db.from("registrations").select("*").eq("event_id", current.id).order("created_at", { ascending: false });
+    if (error) { alert("Couldn\u2019t load registrations: " + error.message); return; }
+    all = data;
+    renderStats(); renderRows();
+  }
 
   function renderStats() {
     const friends = all.filter((r) => r.bringing_friend).length;
     $("s_reg").textContent = all.length;
     $("s_friends").textContent = friends;
     $("s_total").textContent = all.length + friends;
-    $("s_allergy").textContent = all.filter((r) => hasAllergy(r)).length;
+    $("s_allergy").textContent = all.filter(hasAllergy).length;
 
-    const cities = [...new Set(all.map((r) => r.city))].sort();
+    const cities = [...new Set([...eventCities(), ...all.map((r) => r.city)])];
     const body = $("cityRows"); body.replaceChildren();
     cities.forEach((c) => {
       const list = all.filter((r) => r.city === c);
@@ -174,11 +480,6 @@
     sel.value = cities.includes(cur) ? cur : "";
   }
 
-  function hasAllergy(r) {
-    const a = (r.allergies || "").trim().toLowerCase();
-    return a && !["none", "no", "nil", "n/a", "na", "-"].includes(a);
-  }
-
   function renderRows() {
     const q = $("q").value.trim().toLowerCase();
     const city = $("cityFilter").value;
@@ -194,42 +495,35 @@
       tag.className = "tag" + (r.bringing_friend ? "" : " no");
       tag.textContent = r.bringing_friend ? "+1 friend" : "Solo";
       friend.append(tag);
-      const al = cell(r.allergies || "", hasAllergy(r) ? "allergy" : "");
-      tr.append(cell(r.full_name), cell(r.phone), cell(r.city), friend, al, cell(fmtDate(r.created_at)));
+
+      const act = document.createElement("td");
+      const del = document.createElement("button");
+      del.className = "danger"; del.type = "button"; del.textContent = "Remove";
+      del.setAttribute("aria-label", "Remove " + r.full_name);
+      del.addEventListener("click", () => removeReg(r));
+      act.append(del);
+
+      tr.append(cell(r.full_name), cell(r.phone), cell(r.city), friend, cell(r.allergies || "", hasAllergy(r) ? "allergy" : ""), cell(fmtDate(r.created_at)), act);
       body.append(tr);
     });
     $("empty").hidden = list.length > 0;
   }
 
-  async function load() {
-    const { data, error } = await db.from("registrations").select("*").order("created_at", { ascending: false });
-    if (error) { alert("Couldn\u2019t load registrations: " + error.message); return; }
-    all = data;
+  async function removeReg(r) {
+    const extra = r.bringing_friend ? " (and their friend)" : "";
+    if (!confirm("Remove " + r.full_name + extra + " from " + current.name + "? This can\u2019t be undone.")) return;
+    const { data, error } = await db.from("registrations").delete().eq("id", r.id).select();
+    if (error || !data || !data.length) { alert("Couldn\u2019t remove that registration."); return; }
+    all = all.filter((x) => x.id !== r.id);
     renderStats(); renderRows();
   }
 
-  function show(signedIn) {
-    $("login").hidden = signedIn;
-    $("dash").hidden = !signedIn;
-    if (signedIn) load();
-  }
-
-  $("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    $("loginMsg").textContent = "";
-    if (!db) { $("loginMsg").textContent = "Supabase isn\u2019t connected. Add your URL and anon key to .env and restart."; return; }
-    const { error } = await db.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
-    if (error) { $("loginMsg").textContent = "Email or password is incorrect."; return; }
-    $("password").value = "";
-    show(true);
-  });
-
-  $("signout").addEventListener("click", async () => { await db.auth.signOut(); all = []; show(false); });
-  $("refresh").addEventListener("click", load);
+  $("refresh").addEventListener("click", async () => { await loadEvents(current && current.id); await loadAdmins(); });
   $("q").addEventListener("input", renderRows);
   $("cityFilter").addEventListener("change", renderRows);
 
   $("export").addEventListener("click", () => {
+    if (!current) return;
     const safe = (v) => {
       let s = String(v ?? "");
       if (/^[=+\-@]/.test(s)) s = "'" + s;
@@ -242,16 +536,58 @@
     const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "merry-motion-registrations.csv";
+    a.download = current.slug + "-registrations.csv";
     a.click();
     URL.revokeObjectURL(a.href);
   });
 
+  /* ---------- Admins ---------- */
+  async function loadAdmins() {
+    const { data, error } = await db.from("admin_emails").select("email").order("added_at", { ascending: true });
+    if (error) { say($("adminMsg"), "Couldn\u2019t load admins: " + error.message); return; }
+    const body = $("adminRows"); body.replaceChildren();
+    data.forEach((a) => {
+      const tr = document.createElement("tr");
+      const isMe = a.email === me;
+      tr.append(cell(a.email + (isMe ? " (you)" : "")));
+      const act = document.createElement("td");
+      act.style.textAlign = "right";
+      if (!isMe) {
+        const b = document.createElement("button");
+        b.className = "danger"; b.type = "button"; b.textContent = "Remove";
+        b.setAttribute("aria-label", "Remove admin " + a.email);
+        b.addEventListener("click", () => removeAdmin(a.email));
+        act.append(b);
+      }
+      tr.append(act);
+      body.append(tr);
+    });
+  }
+
+  $("adminForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    say($("adminMsg"), "");
+    const email = $("newAdmin").value.trim().toLowerCase();
+    const { error } = await db.from("admin_emails").insert({ email });
+    if (error) { say($("adminMsg"), error.code === "23505" ? "That email is already an admin." : "Couldn\u2019t add admin: " + error.message); return; }
+    $("newAdmin").value = "";
+    say($("adminMsg"), email + " added. Ask them to create their account on this page with that email.", true);
+    await loadAdmins();
+  });
+
+  async function removeAdmin(email) {
+    if (!confirm("Remove admin access for " + email + "?")) return;
+    const { data, error } = await db.from("admin_emails").delete().eq("email", email).select();
+    if (error || !data || !data.length) { say($("adminMsg"), "Couldn\u2019t remove that admin."); return; }
+    say($("adminMsg"), email + " no longer has admin access.", true);
+    await loadAdmins();
+  }
+
+  /* ---------- Start ---------- */
   if (db) {
-    db.auth.getSession().then(({ data }) => show(!!data.session));
+    db.auth.getSession().then(({ data }) => (data.session ? enter(data.session) : showLogin("")));
   } else {
-    $("login").hidden = false;
-    $("loginMsg").textContent = "Supabase isn\u2019t connected. Add your URL and anon key to .env and restart.";
+    showLogin("Supabase isn\u2019t connected. Add your URL and anon key to .env and restart.");
   }
 </script>
 </body>
