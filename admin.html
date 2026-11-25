@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Merry Motion | Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #122d21; --pine: #214d37; --emerald: #0f6b47;
+    --cream: #faf5e8; --ivory: #f5eee0; --champagne: #d9bd7a; --gold: #c9a24a;
+    --cranberry: #a4162b; --ink: #1b2a22; --muted: #5d6b63; --line: #dccfae;
+    --serif: "Playfair Display", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--forest); color: var(--ivory); font-family: var(--sans); line-height: 1.5; padding: 28px 16px 56px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { margin: 0; font-family: var(--serif); font-size: 32px; color: var(--cream); }
+  h1 em { display: block; font-size: 18px; font-weight: 500; color: var(--champagne); }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  button, .btn {
+    font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; min-height: 44px;
+    padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--gold);
+    background: transparent; color: var(--champagne);
+  }
+  button:hover { background: rgba(201,162,74,.15); }
+  button.solid { background: var(--gold); color: var(--forest); }
+  button.solid:hover { background: var(--champagne); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--champagne); outline-offset: 2px; }
+
+  .panel { background: var(--cream); color: var(--ink); border: 1px solid var(--gold); border-radius: 16px; padding: 22px; }
+  .panel h2 { margin: 0 0 14px; font-family: var(--serif); font-size: 22px; color: var(--forest); }
+
+  /* login */
+  #login { max-width: 400px; margin: 60px auto 0; }
+  #login label { display: block; font-weight: 600; font-size: 15px; margin: 0 0 6px; color: var(--forest); }
+  #login input { width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; margin-bottom: 16px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  #login button { width: 100%; }
+  .msg { color: var(--cranberry); font-size: 15px; margin: 0 0 14px; min-height: 0; }
+
+  /* headcount */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .stat { background: var(--cream); color: var(--ink); border: 1px solid var(--gold); border-radius: 14px; padding: 16px 18px; }
+  .stat.main { background: var(--gold); border-color: var(--gold); }
+  .stat .n { font-family: var(--serif); font-weight: 700; font-size: 44px; line-height: 1; color: var(--forest); }
+  .stat .l { margin-top: 6px; font-size: 14px; color: var(--muted); }
+  .stat.main .l { color: var(--forest); }
+
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 13px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tfoot td { font-weight: 600; border-bottom: 0; color: var(--forest); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: var(--forest); color: var(--cream); }
+  .tag.no { background: #e8e0cc; color: var(--muted); }
+  .allergy { color: var(--cranberry); font-weight: 500; }
+  .empty { color: var(--muted); padding: 18px 0 4px; }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .toolbar input, .toolbar select { font: inherit; font-size: 15px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); min-height: 44px; }
+  .toolbar input { flex: 1; min-width: 180px; }
+  .panel + .panel, .stats + .panel { margin-top: 18px; }
+  .panel button { color: var(--forest); border-color: var(--forest); }
+  .panel button:hover { background: rgba(18,45,33,.08); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="login" class="panel" hidden>
+    <h2>Admin sign in</h2>
+    <p class="msg" id="loginMsg" role="alert"></p>
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password" required>
+      <button type="submit" class="solid" style="color:var(--forest);border-color:var(--gold)">Sign in</button>
+    </form>
+  </section>
+
+  <section id="dash" hidden>
+    <div class="top">
+      <h1>Merry Motion <em>Registrations</em></h1>
+      <div class="actions">
+        <button id="refresh">Refresh</button>
+        <button id="export">Download CSV</button>
+        <button id="signout">Sign out</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat main"><div class="n" id="s_total">0</div><div class="l">People attending (including friends)</div></div>
+      <div class="stat"><div class="n" id="s_reg">0</div><div class="l">Registered</div></div>
+      <div class="stat"><div class="n" id="s_friends">0</div><div class="l">Friends coming</div></div>
+      <div class="stat"><div class="n" id="s_allergy">0</div><div class="l">With allergies</div></div>
+    </div>
+
+    <div class="panel">
+      <h2>Headcount by city</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>City</th><th class="num">Registered</th><th class="num">Friends</th><th class="num">Total</th></tr></thead>
+          <tbody id="cityRows"></tbody>
+          <tfoot id="cityFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Everyone registered</h2>
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Search name or phone" aria-label="Search name or phone">
+        <select id="cityFilter" aria-label="Filter by city"><option value="">All cities</option></select>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Friend</th><th>Allergies</th><th>Registered</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="empty" hidden>No registrations match.</p>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+  import { db } from "./src/supabase.js";
+
+  const $ = (id) => document.getElementById(id);
+  let all = [];
+
+  const fmtDate = (iso) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+  function cell(text, cls) {
+    const td = document.createElement("td");
+    if (cls) td.className = cls;
+    td.textContent = text;
+    return td;
+  }
+
+  function renderStats() {
+    const friends = all.filter((r) => r.bringing_friend).length;
+    $("s_reg").textContent = all.length;
+    $("s_friends").textContent = friends;
+    $("s_total").textContent = all.length + friends;
+    $("s_allergy").textContent = all.filter((r) => hasAllergy(r)).length;
+
+    const cities = [...new Set(all.map((r) => r.city))].sort();
+    const body = $("cityRows"); body.replaceChildren();
+    cities.forEach((c) => {
+      const list = all.filter((r) => r.city === c);
+      const f = list.filter((r) => r.bringing_friend).length;
+      const tr = document.createElement("tr");
+      tr.append(cell(c), cell(list.length, "num"), cell(f, "num"), cell(list.length + f, "num"));
+      body.append(tr);
+    });
+    const foot = $("cityFoot"); foot.replaceChildren();
+    const tr = document.createElement("tr");
+    tr.append(cell("All cities"), cell(all.length, "num"), cell(friends, "num"), cell(all.length + friends, "num"));
+    foot.append(tr);
+
+    const sel = $("cityFilter"); const cur = sel.value;
+    sel.replaceChildren(new Option("All cities", ""));
+    cities.forEach((c) => sel.append(new Option(c, c)));
+    sel.value = cities.includes(cur) ? cur : "";
+  }
+
+  function hasAllergy(r) {
+    const a = (r.allergies || "").trim().toLowerCase();
+    return a && !["none", "no", "nil", "n/a", "na", "-"].includes(a);
+  }
+
+  function renderRows() {
+    const q = $("q").value.trim().toLowerCase();
+    const city = $("cityFilter").value;
+    const list = all.filter((r) =>
+      (!city || r.city === city) &&
+      (!q || r.full_name.toLowerCase().includes(q) || r.phone.includes(q.replace(/\s/g, "")))
+    );
+    const body = $("rows"); body.replaceChildren();
+    list.forEach((r) => {
+      const tr = document.createElement("tr");
+      const friend = document.createElement("td");
+      const tag = document.createElement("span");
+      tag.className = "tag" + (r.bringing_friend ? "" : " no");
+      tag.textContent = r.bringing_friend ? "+1 friend" : "Solo";
+      friend.append(tag);
+      const al = cell(r.allergies || "", hasAllergy(r) ? "allergy" : "");
+      tr.append(cell(r.full_name), cell(r.phone), cell(r.city), friend, al, cell(fmtDate(r.created_at)));
+      body.append(tr);
+    });
+    $("empty").hidden = list.length > 0;
+  }
+
+  async function load() {
+    const { data, error } = await db.from("registrations").select("*").order("created_at", { ascending: false });
+    if (error) { alert("Couldn\u2019t load registrations: " + error.message); return; }
+    all = data;
+    renderStats(); renderRows();
+  }
+
+  function show(signedIn) {
+    $("login").hidden = signedIn;
+    $("dash").hidden = !signedIn;
+    if (signedIn) load();
+  }
+
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("loginMsg").textContent = "";
+    if (!db) { $("loginMsg").textContent = "Supabase isn\u2019t connected. Add your URL and anon key to .env and restart."; return; }
+    const { error } = await db.auth.signInWithPassword({ email: $("email").value.trim(), password: $("password").value });
+    if (error) { $("loginMsg").textContent = "Email or password is incorrect."; return; }
+    $("password").value = "";
+    show(true);
+  });
+
+  $("signout").addEventListener("click", async () => { await db.auth.signOut(); all = []; show(false); });
+  $("refresh").addEventListener("click", load);
+  $("q").addEventListener("input", renderRows);
+  $("cityFilter").addEventListener("change", renderRows);
+
+  $("export").addEventListener("click", () => {
+    const safe = (v) => {
+      let s = String(v ?? "");
+      if (/^[=+\-@]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
+    const head = ["Full name", "Phone", "City", "Bringing friend", "Allergies", "Registered at"];
+    const lines = [head.map(safe).join(",")].concat(
+      all.map((r) => [r.full_name, r.phone, r.city, r.bringing_friend ? "Yes" : "No", r.allergies, r.created_at].map(safe).join(","))
+    );
+    const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "merry-motion-registrations.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  if (db) {
+    db.auth.getSession().then(({ data }) => show(!!data.session));
+  } else {
+    $("login").hidden = false;
+    $("loginMsg").textContent = "Supabase isn\u2019t connected. Add your URL and anon key to .env and restart.";
+  }
+</script>
+</body>
+</html>
