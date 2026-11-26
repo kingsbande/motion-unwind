@@ -275,8 +275,12 @@
       </div>
 
       <fieldset class="field">
-        <legend>Which city will you celebrate in?</legend>
-        <div class="choices" id="cities"></div>
+        <legend>How will you attend?</legend>
+        <div class="choices" id="attendanceChoices"></div>
+        <div class="field" id="onlineLocationField" hidden>
+          <label for="onlineLocation">Where will you be joining from?</label>
+          <input type="text" id="onlineLocation" maxlength="100" placeholder="City or country" disabled>
+        </div>
         <p class="venue" id="venue" aria-live="polite"></p>
         <div class="error" id="err_city"></div>
       </fieldset>
@@ -447,19 +451,43 @@
   }
 
   function renderCities() {
-    $("cities").replaceChildren();
+    const choices = $("attendanceChoices");
+    choices.replaceChildren();
     CITIES.forEach((c, i) => {
       const id = "city_" + i;
       const input = document.createElement("input");
-      input.type = "radio"; input.name = "city"; input.id = id; input.value = c.name;
+      input.type = "radio"; input.name = "attendance"; input.id = id; input.value = "city:" + c.name;
       const label = document.createElement("label");
       label.htmlFor = id; label.textContent = c.name;
-      $("cities").append(input, label);
+      choices.append(input, label);
       input.addEventListener("change", () => {
         $("venue").textContent = c.venue ? "Venue: " + c.venue : "";
+        updateAttendanceVisibility();
       });
     });
+
+    const online = document.createElement("input");
+    online.type = "radio"; online.name = "attendance"; online.id = "attend_online"; online.value = "online";
+    const onlineLabel = document.createElement("label");
+    onlineLabel.htmlFor = online.id; onlineLabel.textContent = "Online";
+    choices.append(online, onlineLabel);
+    online.addEventListener("change", () => {
+      $("venue").textContent = "";
+      updateAttendanceVisibility();
+    });
   }
+
+  function updateAttendanceVisibility() {
+    const online = $("attend_online").checked;
+    const field = $("onlineLocationField");
+    const input = $("onlineLocation");
+    field.hidden = !online;
+    input.disabled = !online;
+    input.required = online;
+    if (!online) input.value = "";
+  }
+
+  $("onlineLocation").addEventListener("input", () => setError("city", ""));
 
   function updateFriendCountVisibility() {
     const show = $("friend_yes").checked;
@@ -548,7 +576,10 @@
     let ok = true;
     const name = form.full_name.value.trim().replace(/\s+/g, " ");
     const phone = form.phone.value.replace(/[\s\-()]/g, "");
-    const city = (form.querySelector('input[name="city"]:checked') || {}).value;
+    const attendance = (form.querySelector('input[name="attendance"]:checked') || {}).value;
+    const attendanceType = attendance === "online" ? "online" : "in_person";
+    const city = attendance && attendanceType === "in_person" ? attendance.slice(5) : null;
+    const joiningFrom = attendanceType === "online" ? $("onlineLocation").value.trim() : "";
     const friend = (form.querySelector('input[name="friend"]:checked') || {}).value;
     const friendCount = friend === "yes" ? $("friendCount").valueAsNumber : 0;
 
@@ -556,14 +587,18 @@
 
     if (name.length < 2) { setError("full_name", "Enter your full name."); ok = false; }
     if (!/^\+?\d{7,15}$/.test(phone)) { setError("phone", "Enter a valid phone number, like 0888123456."); ok = false; }
-    if (!city) { setError("city", "Choose a city."); ok = false; }
+    if (!attendance) { setError("city", "Choose a city or online attendance."); ok = false; }
+    else if (attendanceType === "online" && (joiningFrom.length < 2 || joiningFrom.length > 100)) {
+      setError("city", "Enter where you will be joining from (2 to 100 characters).");
+      ok = false;
+    }
     if (!friend) { setError("friend", "Choose yes or no."); ok = false; }
     if (friend === "yes" && (!Number.isInteger(friendCount) || friendCount < 1)) {
       $("err_friend").textContent = "Enter at least one friend.";
       ok = false;
     }
 
-    return ok ? { name, phone, city, friend, friendCount, allergies: form.allergies.value.trim() } : null;
+    return ok ? { name, phone, city, attendanceType, joiningFrom, friend, friendCount, allergies: form.allergies.value.trim() } : null;
   }
 
   form.addEventListener("submit", async (e) => {
@@ -581,6 +616,8 @@
       full_name: v.name,
       phone: v.phone,
       city: v.city,
+      attendance_type: v.attendanceType,
+      joining_from: v.joiningFrom || null,
       allergies: v.allergies || null,
       bringing_friend: v.friendCount > 0,
       friend_count: v.friendCount
@@ -602,7 +639,9 @@
     $("doneTitle").textContent = "You\u2019re in, " + first + "!";
     $("doneWhen").textContent = formatWhen(event.event_date);
     const city = CITIES.find((c) => c.name === v.city);
-    $("doneVenue").textContent = city && city.venue ? v.city + ": " + city.venue : v.city;
+    $("doneVenue").textContent = v.attendanceType === "online"
+      ? "Joining online from " + v.joiningFrom
+      : city && city.venue ? v.city + ": " + city.venue : v.city;
     $("doneDress").textContent = event.dress_note || "";
     $("doneDress").hidden = !event.dress_note;
     $("card").classList.add("is-done");

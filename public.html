@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Shared event registrations | Beacon Motion</title>
+<link rel="icon" type="image/png" href="/motion-unwind-logo-transparent-512.png">
+<link rel="apple-touch-icon" href="/motion-unwind-logo-transparent-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #122d21; --pine: #214d37; --cream: #faf5e8; --ivory: #f5eee0;
+    --champagne: #d9bd7a; --gold: #c9a24a; --ink: #1b2a22; --muted: #5d6b63;
+    --line: #dccfae; --serif: "Playfair Display", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 28px 16px 56px; background: var(--forest); color: var(--ivory); font: 16px/1.5 var(--sans); }
+  main { max-width: 980px; margin: 0 auto; }
+  header { margin-bottom: 22px; }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .host { margin: 0 0 6px; color: var(--champagne); font-size: 12px; font-weight: 600; letter-spacing: .24em; }
+  h1 { margin: 0; color: var(--cream); font: 700 clamp(30px, 7vw, 38px)/1.1 var(--serif); }
+  #eventSubtitle { margin: 6px 0 0; color: var(--champagne); font: italic 20px var(--serif); }
+  #eventDate { margin: 10px 0 0; color: var(--ivory); font-weight: 500; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; min-height: 44px;
+    padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--gold);
+    background: transparent; color: var(--champagne);
+  }
+  button:hover { background: rgba(201,162,74,.15); }
+  button:disabled { opacity: .6; cursor: wait; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--champagne); outline-offset: 2px; }
+  .panel { margin-top: 18px; padding: 20px; border: 1px solid var(--gold); border-radius: 16px; background: var(--cream); color: var(--ink); }
+  .message { margin: 0; font-size: 16px; }
+  .message.error { color: #a4162b; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 18px; }
+  .stat { min-width: 0; padding: 16px 18px; border: 1px solid var(--gold); border-radius: 14px; background: var(--cream); color: var(--ink); }
+  .stat.main { background: var(--gold); }
+  .stat strong { display: block; color: var(--forest); font: 700 44px/1 var(--serif); font-variant-numeric: tabular-nums; }
+  .stat span { display: block; margin-top: 6px; color: var(--muted); font-size: 14px; }
+  .stat.main span { color: var(--forest); }
+  .panel h2 { margin: 0 0 14px; color: var(--forest); font: 600 22px var(--serif); }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .toolbar input, .toolbar select {
+    min-height: 44px; margin: 0; padding: 11px 13px; border: 1.5px solid var(--line);
+    border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: 16px;
+  }
+  .toolbar input { flex: 1; min-width: 180px; width: auto; }
+  .toolbar select { width: auto; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 15px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  th { color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tfoot td { font-weight: 600; border-bottom: 0; color: var(--forest); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; background: var(--forest); color: var(--cream); font-size: 13px; white-space: nowrap; }
+  .tag.no { background: #e8e0cc; color: var(--muted); }
+  .empty { margin: 14px 0 0; color: var(--muted); }
+  .loading { color: var(--muted); padding: 18px 0 4px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 520px) {
+    body { padding: 20px 12px 40px; }
+    .top { align-items: flex-start; flex-direction: column; }
+    .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+    .actions button { min-width: 0; padding: 9px 10px; }
+    .panel { padding: 16px; margin-top: 14px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 12px; }
+    .stat strong { font-size: clamp(30px, 10vw, 40px); }
+    .stat span { font-size: 12px; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar input, .toolbar select { width: 100%; min-width: 0; }
+  }
+  @media (max-width: 360px) {
+    body { padding-right: 10px; padding-left: 10px; }
+    .panel { padding: 12px; }
+    .actions { gap: 6px; }
+    .actions button { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="top">
+      <div>
+        <p class="host">BEACON MOTION</p>
+        <h1 id="eventName">Loading shared event…</h1>
+        <p id="eventSubtitle" hidden></p>
+        <p id="eventDate" hidden></p>
+      </div>
+      <div class="actions">
+        <button id="refresh" type="button">Refresh</button>
+        <button id="export" type="button" disabled>Download CSV</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="panel" id="statusPanel">
+    <p class="message" id="status" role="status">Loading registrations…</p>
+  </section>
+
+  <section id="eventContent" hidden>
+    <div class="stats">
+      <div class="stat main"><strong id="totalCount">0</strong><span>People attending (including friends)</span></div>
+      <div class="stat"><strong id="registrantCount">0</strong><span>Registered</span></div>
+      <div class="stat"><strong id="friendCount">0</strong><span>Friends coming</span></div>
+      <div class="stat"><strong id="allergyCount">0</strong><span>With allergies</span></div>
+    </div>
+
+    <section class="panel">
+      <h2>Headcount by location</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>City / joining from</th><th class="num">Registered</th><th class="num">Friends</th><th class="num">Total</th></tr></thead>
+          <tbody id="locationRows"></tbody>
+          <tfoot id="locationFoot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Search name or phone" aria-label="Search name or phone">
+        <select id="locationFilter" aria-label="Filter by location"><option value="">All locations</option></select>
+      </div>
+      <h2>Everyone registered</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>City / joining from</th><th>Friends</th><th>Allergies</th><th>Registered</th></tr>
+          </thead>
+          <tbody id="registrations"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="empty" hidden>No registrations match.</p>
+    </section>
+  </section>
+</main>
+
+<script type="module">
+  import { db } from "./src/supabase.js";
+
+  const $ = (id) => document.getElementById(id);
+  let registrations = [];
+  let eventData = null;
+
+  function friendCount(registration) {
+    const count = Number(registration.friend_count);
+    return Number.isInteger(count) && count >= 0 ? count : (registration.bringing_friend ? 1 : 0);
+  }
+
+  function registrationPlace(registration) {
+    return registration.attendance_type === "online"
+      ? "Online: " + (registration.joining_from || "Location not provided")
+      : (registration.city || "Location not provided");
+  }
+
+  function renderRows() {
+    const query = $("search").value.trim().toLowerCase();
+    const location = $("locationFilter").value;
+    const rows = registrations.filter((registration) =>
+      (!location || registrationPlace(registration) === location) &&
+      [registration.full_name, registration.phone]
+        .some((value) => value.toLowerCase().includes(query))
+    );
+    const body = $("registrations");
+    body.replaceChildren();
+    rows.forEach((registration) => {
+      const row = document.createElement("tr");
+      const friend = document.createElement("td");
+      const friends = friendCount(registration);
+      const tag = document.createElement("span");
+      tag.className = "tag" + (friends ? "" : " no");
+      tag.textContent = friends ? "+" + friends + (friends === 1 ? " friend" : " friends") : "Solo";
+      friend.append(tag);
+      const values = [registration.full_name, registration.phone, registrationPlace(registration)];
+      values.forEach((value) => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+      });
+      row.append(friend);
+      [
+        registration.allergies || "",
+        new Date(registration.created_at).toLocaleString("en-GB", {
+          day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+          timeZone: "Africa/Blantyre"
+        })
+      ].forEach((value) => {
+        const cell = document.createElement("td");
+        cell.textContent = value || "—";
+        row.append(cell);
+      });
+      body.append(row);
+    });
+    $("empty").hidden = rows.length > 0;
+  }
+
+  function renderHeadcounts() {
+    const locations = new Set((Array.isArray(eventData.venues) ? eventData.venues : [])
+      .map((venue) => venue.name)
+      .filter(Boolean));
+    registrations.forEach((registration) => locations.add(registrationPlace(registration)));
+    const rows = $("locationRows");
+    rows.replaceChildren();
+    [...locations].sort((a, b) => a.localeCompare(b)).forEach((location) => {
+      const people = registrations.filter((registration) => registrationPlace(registration) === location);
+      const friends = people.reduce((sum, registration) => sum + friendCount(registration), 0);
+      const row = document.createElement("tr");
+      [location, String(people.length), String(friends), String(people.length + friends)].forEach((value, index) => {
+        const cell = document.createElement("td");
+        if (index) cell.className = "num";
+        cell.textContent = value;
+        row.append(cell);
+      });
+      rows.append(row);
+    });
+    const totalFriends = registrations.reduce((sum, registration) => sum + friendCount(registration), 0);
+    const foot = $("locationFoot");
+    foot.replaceChildren();
+    const total = document.createElement("tr");
+    ["All locations", String(registrations.length), String(totalFriends), String(registrations.length + totalFriends)]
+      .forEach((value, index) => {
+        const cell = document.createElement("td");
+        if (index) cell.className = "num";
+        cell.textContent = value;
+        total.append(cell);
+      });
+    foot.append(total);
+
+    const filter = $("locationFilter");
+    const selected = filter.value;
+    filter.replaceChildren(new Option("All locations", ""));
+    [...locations].sort((a, b) => a.localeCompare(b)).forEach((location) => filter.append(new Option(location, location)));
+    filter.value = locations.has(selected) ? selected : "";
+  }
+
+  async function init() {
+    if (!db) {
+      $("status").textContent = "This page is not connected to Supabase.";
+      $("status").classList.add("error");
+      return;
+    }
+
+    const token = new URLSearchParams(window.location.search).get("token") || "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token)) {
+      $("status").textContent = "This shared event link is invalid or incomplete.";
+      $("status").classList.add("error");
+      return;
+    }
+
+    $("refresh").disabled = true;
+    $("status").textContent = "Loading registrations…";
+    $("status").classList.remove("error");
+    $("statusPanel").hidden = false;
+    const { data, error } = await db.rpc("get_public_event_data", { p_share_token: token });
+    $("refresh").disabled = false;
+    if (error) {
+      $("status").textContent = "Could not load registrations: " + error.message;
+      $("status").classList.add("error");
+      return;
+    }
+    if (!data || !data.event) {
+      $("status").textContent = "This shared event link is invalid or has been disabled.";
+      $("status").classList.add("error");
+      return;
+    }
+
+    const event = data.event;
+    eventData = event;
+    registrations = Array.isArray(data.registrations) ? data.registrations : [];
+    document.title = event.name + " registrations | Beacon Motion";
+    $("eventName").textContent = event.name;
+    $("eventSubtitle").textContent = event.subtitle || "";
+    $("eventSubtitle").hidden = !event.subtitle;
+    $("eventDate").textContent = new Date(event.event_date).toLocaleString("en-GB", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric",
+      hour: "numeric", minute: "2-digit", timeZone: "Africa/Blantyre"
+    }) + " (Malawi time)";
+    $("eventDate").hidden = false;
+    const friends = registrations.reduce((sum, registration) => sum + friendCount(registration), 0);
+    const allergies = registrations.filter((registration) => {
+      const value = (registration.allergies || "").trim().toLowerCase();
+      return value && !["none", "no", "nil", "n/a", "na", "-"].includes(value);
+    }).length;
+    $("registrantCount").textContent = String(registrations.length);
+    $("friendCount").textContent = String(friends);
+    $("totalCount").textContent = String(registrations.length + friends);
+    $("allergyCount").textContent = String(allergies);
+    $("statusPanel").hidden = true;
+    $("eventContent").hidden = false;
+    $("export").disabled = false;
+    renderHeadcounts();
+    renderRows();
+  }
+
+  $("search").addEventListener("input", renderRows);
+  $("locationFilter").addEventListener("change", renderRows);
+  $("refresh").addEventListener("click", init);
+  $("export").addEventListener("click", () => {
+    const safe = (value) => {
+      let text = String(value ?? "");
+      if (/^[=+\-@]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    };
+    const columns = ["Full name", "Phone", "Attendance location", "Friends coming", "Allergies", "Registered at"];
+    const rows = registrations.map((registration) => [
+      registration.full_name, registration.phone, registrationPlace(registration), friendCount(registration),
+      registration.allergies, registration.created_at
+    ]);
+    const csv = [columns, ...rows].map((row) => row.map(safe).join(",")).join("\r\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+    link.download = (eventData.name || "event").toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-registrations.csv";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+  init();
+</script>
+</body>
+</html>

@@ -5,10 +5,19 @@ create table public.registrations (
   created_at timestamptz not null default now(),
   full_name text not null check (char_length(full_name) between 2 and 100),
   phone text not null check (char_length(phone) between 7 and 20),
-  city text not null check (char_length(city) between 2 and 50),
+  city text check (char_length(city) between 2 and 50),
   allergies text check (char_length(allergies) <= 300),
   bringing_friend boolean not null default false,
-  friend_count integer not null default 0 constraint registrations_friend_count_nonnegative check (friend_count >= 0)
+  friend_count integer not null default 0 constraint registrations_friend_count_nonnegative check (friend_count >= 0),
+  attendance_type text not null default 'in_person' check (attendance_type in ('in_person', 'online')),
+  joining_from text,
+  constraint registrations_attendance_location_check check (
+    (attendance_type = 'in_person' and city is not null and joining_from is null)
+    or (
+      attendance_type = 'online' and city is null and joining_from is not null
+      and char_length(btrim(joining_from)) between 2 and 100
+    )
+  )
 );
 
 -- One registration per phone number (stops accidental double sign-ups)

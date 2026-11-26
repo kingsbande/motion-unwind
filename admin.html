@@ -179,8 +179,11 @@
         <span class="pill" id="statusPill"></span>
         <button id="toggleOpen"></button>
         <button id="copyLink">Copy sign-up link</button>
+        <button id="copyDataLink">Copy public data link</button>
       </div>
       <p class="link" id="linkText"></p>
+      <p class="link" id="dataLinkText"></p>
+      <p class="sub">Anyone with the public data link can view attendee names, phone numbers, and allergies.</p>
       <p class="empty" id="noEvents" hidden>No events yet. Create your first one.</p>
     </div>
 
@@ -193,10 +196,10 @@
       </div>
 
       <div class="panel">
-        <h2>Headcount by city</h2>
+        <h2>Headcount by location</h2>
         <div class="scroll">
           <table>
-            <thead><tr><th>City</th><th class="num">Registered</th><th class="num">Friends</th><th class="num">Total</th></tr></thead>
+            <thead><tr><th>City / joining from</th><th class="num">Registered</th><th class="num">Friends</th><th class="num">Total</th></tr></thead>
             <tbody id="cityRows"></tbody>
             <tfoot id="cityFoot"></tfoot>
           </table>
@@ -207,11 +210,11 @@
         <h2>Everyone registered</h2>
         <div class="toolbar">
           <input type="search" id="q" placeholder="Search name or phone" aria-label="Search name or phone">
-          <select id="cityFilter" aria-label="Filter by city"><option value="">All cities</option></select>
+          <select id="cityFilter" aria-label="Filter by location"><option value="">All locations</option></select>
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Friends</th><th>Allergies</th><th>Registered</th><th><span class="sr">Remove</span></th></tr></thead>
+            <thead><tr><th>Name</th><th>Phone</th><th>City / joining from</th><th>Friends</th><th>Allergies</th><th>Registered</th><th><span class="sr">Remove</span></th></tr></thead>
             <tbody id="rows"></tbody>
           </table>
         </div>
@@ -292,6 +295,9 @@
     return a && !["none", "no", "nil", "n/a", "na", "-"].includes(a);
   };
   const eventCities = () => (current && Array.isArray(current.venues) ? current.venues.map((v) => v.name) : []);
+  const registrationPlace = (r) => r.attendance_type === "online"
+    ? "Online: " + (r.joining_from || "Location not provided")
+    : (r.city || "Location not provided");
 
   /* ---------- Sign in / sign up ---------- */
   function setMode(m) {
@@ -392,18 +398,48 @@
 
   async function selectEvent(id) {
     current = events.find((e) => e.id === id) || null;
-    renderEventBar();
+    await renderEventBar();
     $("q").value = ""; $("cityFilter").value = "";
     await loadRegs();
   }
 
-  function renderEventBar() {
+  async function renderEventBar() {
     if (!current) return;
     const open = current.registration_open;
     $("statusPill").textContent = open ? "Registration open" : "Registration closed";
     $("statusPill").classList.toggle("closed", !open);
     $("toggleOpen").textContent = open ? "Close registration" : "Reopen registration";
     $("linkText").textContent = window.location.origin + "/?event=" + current.slug;
+    await renderPublicDataLink(current.id);
+  }
+
+  async function renderPublicDataLink(eventId) {
+    const text = $("dataLinkText");
+    const button = $("copyDataLink");
+    text.textContent = "Preparing public data link\u2026";
+    button.disabled = true;
+
+    let { data, error } = await db.from("event_public_links")
+      .select("share_token")
+      .eq("event_id", eventId)
+      .maybeSingle();
+    if (!current || current.id !== eventId) return;
+    if (!error && !data) {
+      const result = await db.from("event_public_links")
+        .insert({ event_id: eventId })
+        .select("share_token")
+        .single();
+      data = result.data;
+      error = result.error;
+    }
+
+    if (!current || current.id !== eventId) return;
+    if (error || !data) {
+      text.textContent = "Could not create public data link: " + (error ? error.message : "unknown error");
+      return;
+    }
+    text.textContent = window.location.origin + "/public.html?token=" + encodeURIComponent(data.share_token);
+    button.disabled = false;
   }
 
   $("eventSelect").addEventListener("change", (e) => selectEvent(e.target.value));
@@ -415,7 +451,7 @@
     if (error || !data || !data.length) { alert("Couldn\u2019t update the event."); return; }
     current = data[0];
     events = events.map((e) => (e.id === current.id ? current : e));
-    renderEventBar();
+    await renderEventBar();
   });
 
   $("copyLink").addEventListener("click", async () => {
@@ -425,6 +461,17 @@
       btn.textContent = "Copied";
     } catch { btn.textContent = "Select the link below to copy"; }
     setTimeout(() => { btn.textContent = "Copy sign-up link"; }, 1800);
+  });
+
+  $("copyDataLink").addEventListener("click", async () => {
+    const btn = $("copyDataLink");
+    try {
+      await navigator.clipboard.writeText($("dataLinkText").textContent);
+      btn.textContent = "Copied";
+    } catch {
+      btn.textContent = "Select the link below to copy";
+    }
+    setTimeout(() => { btn.textContent = "Copy public data link"; }, 1800);
   });
 
   /* New event dialog */
@@ -487,10 +534,10 @@
     $("s_total").textContent = all.length + friends;
     $("s_allergy").textContent = all.filter(hasAllergy).length;
 
-    const cities = [...new Set([...eventCities(), ...all.map((r) => r.city)])];
+    const cities = [...new Set([...eventCities(), ...all.map(registrationPlace)])];
     const body = $("cityRows"); body.replaceChildren();
     cities.forEach((c) => {
-      const list = all.filter((r) => r.city === c);
+      const list = all.filter((r) => registrationPlace(r) === c);
       const f = list.reduce((sum, r) => sum + friendCount(r), 0);
       const tr = document.createElement("tr");
       tr.append(cell(c), cell(list.length, "num"), cell(f, "num"), cell(list.length + f, "num"));
@@ -498,11 +545,11 @@
     });
     const foot = $("cityFoot"); foot.replaceChildren();
     const tr = document.createElement("tr");
-    tr.append(cell("All cities"), cell(all.length, "num"), cell(friends, "num"), cell(all.length + friends, "num"));
+    tr.append(cell("All locations"), cell(all.length, "num"), cell(friends, "num"), cell(all.length + friends, "num"));
     foot.append(tr);
 
     const sel = $("cityFilter"); const cur = sel.value;
-    sel.replaceChildren(new Option("All cities", ""));
+    sel.replaceChildren(new Option("All locations", ""));
     cities.forEach((c) => sel.append(new Option(c, c)));
     sel.value = cities.includes(cur) ? cur : "";
   }
@@ -516,7 +563,7 @@
     const q = $("q").value.trim().toLowerCase();
     const city = $("cityFilter").value;
     const list = all.filter((r) =>
-      (!city || r.city === city) &&
+      (!city || registrationPlace(r) === city) &&
       (!q || r.full_name.toLowerCase().includes(q) || r.phone.includes(q.replace(/\s/g, "")))
     );
     const body = $("rows"); body.replaceChildren();
@@ -536,7 +583,7 @@
       del.addEventListener("click", () => removeReg(r));
       act.append(del);
 
-      tr.append(cell(r.full_name), cell(r.phone), cell(r.city), friend, cell(r.allergies || "", hasAllergy(r) ? "allergy" : ""), cell(fmtDate(r.created_at)), act);
+      tr.append(cell(r.full_name), cell(r.phone), cell(registrationPlace(r)), friend, cell(r.allergies || "", hasAllergy(r) ? "allergy" : ""), cell(fmtDate(r.created_at)), act);
       body.append(tr);
     });
     $("empty").hidden = list.length > 0;
@@ -563,9 +610,9 @@
       if (/^[=+\-@]/.test(s)) s = "'" + s;
       return '"' + s.replace(/"/g, '""') + '"';
     };
-    const head = ["Full name", "Phone", "City", "Friends coming", "Allergies", "Registered at"];
+    const head = ["Full name", "Phone", "Attendance location", "Friends coming", "Allergies", "Registered at"];
     const lines = [head.map(safe).join(",")].concat(
-      all.map((r) => [r.full_name, r.phone, r.city, friendCount(r), r.allergies, r.created_at].map(safe).join(","))
+      all.map((r) => [r.full_name, r.phone, registrationPlace(r), friendCount(r), r.allergies, r.created_at].map(safe).join(","))
     );
     const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
